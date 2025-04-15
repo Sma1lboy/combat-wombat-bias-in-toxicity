@@ -4,6 +4,147 @@ You should be able to replicate the solution and retrain all the models from [ou
 
 `code/toxic` contains various utils that are used in `train_*` files.
 
+## Data Setup
+
+Before running the code, you need to download the following data:
+
+1. **Competition Dataset**: Download the training and test data from [Jigsaw Unintended Bias in Toxicity Classification](https://www.kaggle.com/c/jigsaw-unintended-bias-in-toxicity-classification/data) competition on Kaggle.
+
+2. **Embeddings Dataset**: Download the [Gensim Embeddings Dataset](https://www.kaggle.com/iezepov/gensim-embeddings-dataset) from Kaggle.
+
+Place the downloaded files in the following directory structure:
+
+```
+input/
+  ├── jigsaw-unintended-bias-in-toxicity-classification/
+  │     ├── train.csv
+  │     └── test.csv
+  │
+  └── gensim-embeddings-dataset/
+        ├── glove.840B.300d.gensim
+        ├── crawl-300d-2M.gensim
+        ├── paragram_300_sl999.gensim
+        └── GoogleNews-vectors-negative300.gensim
+```
+
+If you're running with limited RAM, you can modify `code/train_lstms.py` to use randomly initialized embeddings instead of loading the pretrained ones.
+
+## System Requirements
+
+### Hardware Requirements
+
+- **GPU version**: CUDA-compatible GPU with at least 16GB VRAM
+- **CPU-only version**: At least 32GB RAM
+- SSD storage recommended for faster data loading
+
+### PyTorch Requirements
+
+Two installation options are available:
+
+- **GPU version**: `torch==1.4.0+cu101` (CUDA 10.1 support)
+- **CPU version**: `torch==1.4.0+cpu`
+
+### Complete Environment
+
+For GPU environments:
+
+```
+torch==1.4.0+cu101
+torchvision==0.5.0
+fastai==1.0.60
+```
+
+For CPU-only environments:
+
+```
+torch==1.4.0+cpu
+torchvision==0.5.0
+fastai==1.0.60
+```
+
+Install specific PyTorch versions:
+
+```
+# GPU version
+pip install torch==1.4.0+cu101 torchvision==0.5.0
+
+# CPU version
+pip install torch-1.4.0+cpu-cp37-cp37m-win_amd64.whl torchvision==0.5.0
+```
+
+All other requirements are listed in `requirements.txt`.
+
+## Environment Setup
+
+### Python Environment
+
+- Python 3.7 (recommended and tested)
+
+### Installation Instructions
+
+#### Using requirements.txt (Recommended)
+
+We provide a `requirements.txt` file with all the necessary dependencies locked to compatible versions. This is the easiest way to set up the environment:
+
+```bash
+# Create and activate environment
+conda create -n toxic_env python=3.7 -y
+conda activate toxic_env
+
+# Install PyTorch (choose ONE of the following options)
+# For GPU:
+pip install https://download.pytorch.org/whl/cu101/torch-1.4.0-cp37-cp37m-win_amd64.whl
+# For CPU:
+# pip install torch-1.4.0+cpu-cp37-cp37m-win_amd64.whl
+
+# Install torchvision
+pip install torchvision==0.5.0
+
+# Install all other dependencies
+pip install -r requirements.txt
+
+# If protobuf causes issues, downgrade it:
+pip install protobuf==3.20.3
+```
+
+Note: The `requirements.txt` file includes all necessary packages except for PyTorch, which should be installed separately as shown above due to different CPU/GPU variants.
+
+#### GPU Environment Setup (Manual Installation)
+
+```bash
+# Create and activate environment
+conda create -n toxic_env python=3.7 -y
+conda activate toxic_env
+
+# Install PyTorch with CUDA 10.1
+pip install https://download.pytorch.org/whl/cu101/torch-1.4.0-cp37-cp37m-win_amd64.whl
+pip install torchvision==0.5.0
+
+# Install other dependencies
+pip install numpy==1.17.0 pandas==0.25.0 scikit-learn==0.21.0 tqdm==4.38.0 keras==2.2.5 gensim==3.8.3 nltk==3.4.5 fastai==1.0.60 spacy==2.3.7 emoji==0.5.4 fasttext-wheel==0.9.2 pytorch-pretrained-bert==0.6.2 tensorflow==1.14.0 protobuf==3.20.3
+```
+
+#### CPU-only Environment Setup
+
+```bash
+# Create and activate environment
+conda create -n toxic_env python=3.7 -y
+conda activate toxic_env
+
+# Install PyTorch CPU version
+pip install torch-1.4.0+cpu-cp37-cp37m-win_amd64.whl
+pip install torchvision==0.5.0
+
+# Install other dependencies
+pip install numpy==1.17.0 pandas==0.25.0 scikit-learn==0.21.0 tqdm==4.38.0 keras==2.2.5 gensim==3.8.3 nltk==3.4.5 fastai==1.0.60 spacy==2.3.7 emoji==0.5.4 fasttext-wheel==0.9.2 pytorch-pretrained-bert==0.6.2 tensorflow==1.14.0 protobuf==3.20.3
+```
+
+### Important Notes
+
+- You may see numpy dtype FutureWarning messages when running the code. These are deprecation warnings from TensorFlow and can be safely ignored.
+- If you encounter dependency conflicts, try installing packages individually or with the `--no-deps` flag.
+- For spaCy models, install using: `python -m spacy download en_core_web_sm`
+
 ## Outline of our final solution
 
 We ended up using a simple average ensemble of 33 models:

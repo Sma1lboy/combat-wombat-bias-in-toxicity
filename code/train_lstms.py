@@ -54,7 +54,7 @@ if __name__ == "__main__":
     torch.cuda.set_device(0)
 
     logging.info("Reading data...")
-    INPUT_FOLDER = "../input/jigsaw-unintended-bias-in-toxicity-classification/"
+    INPUT_FOLDER = os.path.join("input", "jigsaw-unintended-bias-in-toxicity-classification")
     train = pd.read_csv(os.path.join(INPUT_FOLDER, "train.csv"))
     y = train["target"].values
 
@@ -94,18 +94,18 @@ if __name__ == "__main__":
     )
 
     logging.info("Loading pretrained embeddings...")
-
+    EMBEDDINGS_FOLDER = os.path.join("input", "gensim-embeddings-dataset")
     glove_matrix, _ = gensim_to_embedding_matrix(
-        word_dict, "../gensim-embeddings-dataset/glove.840B.300d.gensim"
+        word_dict, os.path.join(EMBEDDINGS_FOLDER, "glove.840B.300d.gensim")
     )
     crawl_matrix, _ = gensim_to_embedding_matrix(
-        word_dict, "../gensim-embeddings-dataset/crawl-300d-2M.gensim"
+        word_dict, os.path.join(EMBEDDINGS_FOLDER, "crawl-300d-2M.gensim")
     )
     para_matrix, _ = gensim_to_embedding_matrix(
-        word_dict, "../gensim-embeddings-dataset/paragram_300_sl999.gensim"
+        word_dict, os.path.join(EMBEDDINGS_FOLDER, "paragram_300_sl999.gensim")
     )
     w2v_matrix, _ = gensim_to_embedding_matrix(
-        word_dict, "../gensim-embeddings-dataset/GoogleNews-vectors-negative300.gensim"
+        word_dict, os.path.join(EMBEDDINGS_FOLDER, "GoogleNews-vectors-negative300.gensim")
     )
 
     logging.info("Buliding char matrix...")
