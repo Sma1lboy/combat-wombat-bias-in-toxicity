@@ -59,9 +59,6 @@ pip install torchvision==0.5.0
 pip install numpy==1.17.0 pandas==0.25.0 scikit-learn==0.21.0 tqdm==4.38.0 keras==2.2.5
 pip install gensim==3.8.3 nltk==3.4.5 fastai==1.0.60 spacy==2.3.7 emoji==0.5.4
 pip install fasttext-wheel==0.9.2 pytorch-pretrained-bert==0.6.2 tensorflow==1.14.0 protobuf==3.20.3
-
-# Download spaCy English model
-python -m spacy download en_core_web_sm
 ```
 
 ### Important Notes
