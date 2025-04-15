@@ -1,0 +1,8 @@
+numpy>=1.16.0
+pandas>=0.24.0
+torch>=1.0.0
+apex==0.1
+tensorboardX>=1.6
+pytorch_pretrained_bert==0.6.2
+scikit-learn>=0.20.0
+gensim>=3.7.0 

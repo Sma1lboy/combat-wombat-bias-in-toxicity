@@ -7,35 +7,37 @@ You should be able to replicate the solution and retrain all the models from [ou
 ## Outline of our final solution
 
 We ended up using a simple average ensemble of 33 models:
-* 12 LSTM-based models
-* 17 BERT models (base only models)
-* 2 GPT2-based models
+
+- 12 LSTM-based models
+- 17 BERT models (base only models)
+- 2 GPT2-based models
 
 Not-standart things:
-* We were predicting 18 targets with evey model
-* We combined some of the target to get the final score. It was hurting AUC but was improving the target metric we care about.
-* LSTMs were using char-level embeddings
-* LSTMs were trained on different set of embeddings
-* We mixed three different types of BERTs: cased, uncased and fine-tuned ucnased (we used [the standart fine-tuning procedure](https://github.com/huggingface/pytorch-pretrained-BERT/tree/master/examples/lm_finetuning))
-* We tried to unbias our models with some PL. The idea was taken from [this paper, "Bias Mitigation" section](http://www.aies-conference.com/wp-content/papers/main/AIES_2018_paper_9.pdf)
-* GPT2 models were using a CNN-based classifier head isntead of the linear classifier head
+
+- We were predicting 18 targets with evey model
+- We combined some of the target to get the final score. It was hurting AUC but was improving the target metric we care about.
+- LSTMs were using char-level embeddings
+- LSTMs were trained on different set of embeddings
+- We mixed three different types of BERTs: cased, uncased and fine-tuned ucnased (we used [the standart fine-tuning procedure](https://github.com/huggingface/pytorch-pretrained-BERT/tree/master/examples/lm_finetuning))
+- We tried to unbias our models with some PL. The idea was taken from [this paper, "Bias Mitigation" section](http://www.aies-conference.com/wp-content/papers/main/AIES_2018_paper_9.pdf)
+- GPT2 models were using a CNN-based classifier head isntead of the linear classifier head
 
 ## The loss
 
 We trained all our models on a quite straightforward BCE loss. the only thing is that we had 18 targets.
 
-* the main target, with special weights that highlites data points that mention identities
-* the main taregt, again, but without any extra weights
-* 5 toxicity types
-* 9 main identites
-* max value for any out of 9 identities columns
-* binary column that indecates whether at least one identity was mentioned
-  
+- the main target, with special weights that highlites data points that mention identities
+- the main taregt, again, but without any extra weights
+- 5 toxicity types
+- 9 main identites
+- max value for any out of 9 identities columns
+- binary column that indecates whether at least one identity was mentioned
+
 All targets, except the last one, were used as soft targets - flaot values from 0 to 1, not hard binary 0/1 targets.
 
 We used a somewhat common weights for the first loss. The toxicity subtypes were trained without any special weights. And the identites loss (last 12 targets) were trained with 0 weight for the NA identities. Even thought the NAs were treated like zeros we decided not to trust that information during the training. Can't say whether it worked though, didn't have time to properly run the ablation study.
 
-In order to improve diversity of out ensemble we sometimes sligtly increased or decreased weight of the main part of the loss (`config.main_loss_weight`). 
+In order to improve diversity of out ensemble we sometimes sligtly increased or decreased weight of the main part of the loss (`config.main_loss_weight`).
 
 The loss function we used:
 
@@ -80,11 +82,11 @@ We ended up using a very simple architecture with 2 bidirectional LSTM layers an
 
 The diversity of oru 12 LSTM models comes from using different embeddings and different initial random states. We used the following embeddings (most of them you know and lvoe):
 
-* glove.840B.300d (global vectors)
-* crawl-300d-2M (fasttext)
-* paragram_300_sl999 (paragram)
-* GoogleNews-vectors-negative300 (word2vec)
-* Char represnation. We computed top-100 most frequent chars in the data and then represented every token with counts on those chars. That's a poor man's char level modeling :)
+- glove.840B.300d (global vectors)
+- crawl-300d-2M (fasttext)
+- paragram_300_sl999 (paragram)
+- GoogleNews-vectors-negative300 (word2vec)
+- Char represnation. We computed top-100 most frequent chars in the data and then represented every token with counts on those chars. That's a poor man's char level modeling :)
 
 Every LSTM model was taking 4 out of 5 concatinated embeddings. Thus the diversity.
 
@@ -103,7 +105,7 @@ def word_forms(word):
     yield PORTER_STEMMER.stem(word)
     yield LANCASTER_STEMMER.stem(word)
     yield SNOWBALL_STEMMER.stem(word)
-    
+
 def maybe_get_embedding(word, model):
     for form in word_forms(word):
         if form in model:
@@ -119,7 +121,7 @@ def maybe_get_embedding(word, model):
 def gensim_to_embedding_matrix(word2index, path):
     model = KeyedVectors.load(path, mmap="r")
     embedding_matrix = np.zeros(
-        (max(word2index.values()) + 1, model.vector_size), 
+        (max(word2index.values()) + 1, model.vector_size),
         dtype=np.float32,
     )
     for word, i in word2index.items():
@@ -133,12 +135,12 @@ def gensim_to_embedding_matrix(word2index, path):
 
 We did some preprocessing for the LSTM models and found it helpful:
 
-* Replacements for some weird unicode chars like `\ufeff`
-* Replacements for the "starred" words like `bit*h`
-* Removing all uncide chars of the `Mn` category
-* Replacing all Hebrew chars with the same Hebrew letter `א`. This trick grately reduces the number of distinct characters in the vocabulary. We didn't expect our model to learn toxicity in different languages anyway. But we don't want to lose information about that some Hebrew word was here
-* The same logic applied to Arabic, Chineese and Japaneese chars
-* Replacing emojies with their aliases and a special `EMJ` . token so the model could understand that an emoji was here.
+- Replacements for some weird unicode chars like `\ufeff`
+- Replacements for the "starred" words like `bit*h`
+- Removing all uncide chars of the `Mn` category
+- Replacing all Hebrew chars with the same Hebrew letter `א`. This trick grately reduces the number of distinct characters in the vocabulary. We didn't expect our model to learn toxicity in different languages anyway. But we don't want to lose information about that some Hebrew word was here
+- The same logic applied to Arabic, Chineese and Japaneese chars
+- Replacing emojies with their aliases and a special `EMJ` . token so the model could understand that an emoji was here.
 
 ## BERTs
 
@@ -164,7 +166,7 @@ lengths = torch.from_numpy(lengths)
 test_dataset = data.TensorDataset(sequences, lengths)
 test_loader = data.DataLoader(
     test_dataset,
-    batch_size=128, 
+    batch_size=128,
     collate_fn=clip_to_max_len,
 )
 ```
@@ -177,7 +179,7 @@ inverse_ids = test.id.values[ids].argsort(kind="stable")
 
 test_loader = data.DataLoader(
     data.Subset(test_dataset, ids),
-    batch_size=128, 
+    batch_size=128,
     collate_fn=clip_to_max_len,
 )
 
@@ -189,11 +191,54 @@ preds = preds[inverse_ids]
 
 We took and idea of adding extra non-toxic data that mentions identites to the dadset to kill the bias of the model. The flow is straightforward:
 
-* Take an amazing datasdet of (8M senteces from wikipedia)[https://www.kaggle.com/mikeortman/wikipedia-sentences]
-* Run predictions of all 18 targets on them with the best single model
-* Filter out senteces that don't mention any identites
-* Filter out senteces with high toxicity predictions (some movies and music albums ahve "toxic" titles like `Hang 'em high!`)
-* Set the targets for toxicity and subtypes of toxicity to 0 since you know that sentecces from wikipedia should not be toxic
-* Add those senteces to the training data to kill the bias towards some identites
+- Take an amazing datasdet of (8M senteces from wikipedia)[https://www.kaggle.com/mikeortman/wikipedia-sentences]
+- Run predictions of all 18 targets on them with the best single model
+- Filter out senteces that don't mention any identites
+- Filter out senteces with high toxicity predictions (some movies and music albums ahve "toxic" titles like `Hang 'em high!`)
+- Set the targets for toxicity and subtypes of toxicity to 0 since you know that sentecces from wikipedia should not be toxic
+- Add those senteces to the training data to kill the bias towards some identites
 
 According to the article mentioned above the trick works very well. We saw string improvemnts on the CV, which didn't translate to as strong improvent on the LB. We still believe that this is a very neat trick, but one needs to be careful with sampling - to math the distribution of lengths at the very elast, or better, other tokens.
+
+# Combat Wombat Bias in Toxicity Classification
+
+This project uses BERT models to detect and combat unintended bias in toxicity classification.
+
+## Requirements
+
+The code requires the following Python packages:
+
+- numpy (>=1.16.0)
+- pandas (>=0.24.0)
+- PyTorch (>=1.0.0)
+- NVIDIA Apex (0.1)
+- tensorboardX (>=1.6)
+- pytorch_pretrained_bert (0.6.2)
+
+## Setup
+
+1. Install the required packages:
+
+```
+pip install -r requirements.txt
+```
+
+2. Install NVIDIA Apex for mixed precision training:
+
+```
+git clone https://github.com/NVIDIA/apex
+cd apex
+pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
+```
+
+3. Download the dataset from the Jigsaw Unintended Bias in Toxicity Classification competition and place it in the `../input/jigsaw-unintended-bias-in-toxicity-classification/` directory.
+
+## Running the Model
+
+To train the BERT models:
+
+```
+python code/train_bert_2_uncased.py
+```
+
+The script will train three different configurations of the model. The trained models will be saved in the `./models/` directory, and TensorBoard logs will be saved in `./tb_logs/`.
