@@ -18,13 +18,6 @@ Place the downloaded files in the following directory structure:
 input/
   ├── jigsaw-unintended-bias-in-toxicity-classification/
   │     ├── train.csv
-  │     └── test.csv
-  │
-  └── gensim-embeddings-dataset/
-        ├── glove.840B.300d.gensim
-        ├── crawl-300d-2M.gensim
-        ├── paragram_300_sl999.gensim
-        └── GoogleNews-vectors-negative300.gensim
 ```
 
 If you're running with limited RAM, you can modify `code/train_lstms.py` to use randomly initialized embeddings instead of loading the pretrained ones.
@@ -37,54 +30,13 @@ If you're running with limited RAM, you can modify `code/train_lstms.py` to use 
 - **CPU-only version**: At least 32GB RAM
 - SSD storage recommended for faster data loading
 
-### PyTorch Requirements
-
-Two installation options are available:
-
-- **GPU version**: `torch==1.4.0+cu101` (CUDA 10.1 support)
-- **CPU version**: `torch==1.4.0+cpu`
-
-### Complete Environment
-
-For GPU environments:
-
-```
-torch==1.4.0+cu101
-torchvision==0.5.0
-fastai==1.0.60
-```
-
-For CPU-only environments:
-
-```
-torch==1.4.0+cpu
-torchvision==0.5.0
-fastai==1.0.60
-```
-
-Install specific PyTorch versions:
-
-```
-# GPU version
-pip install torch==1.4.0+cu101 torchvision==0.5.0
-
-# CPU version
-pip install torch-1.4.0+cpu-cp37-cp37m-win_amd64.whl torchvision==0.5.0
-```
-
-All other requirements are listed in `requirements.txt`.
-
 ## Environment Setup
 
 ### Python Environment
 
 - Python 3.7 (recommended and tested)
 
-### Installation Instructions
-
-#### Using requirements.txt (Recommended)
-
-We provide a `requirements.txt` file with all the necessary dependencies locked to compatible versions. This is the easiest way to set up the environment:
+### Installation Guide
 
 ```bash
 # Create and activate environment
@@ -92,51 +44,24 @@ conda create -n toxic_env python=3.7 -y
 conda activate toxic_env
 
 # Install PyTorch (choose ONE of the following options)
-# For GPU:
+# Option 1: GPU version (requires CUDA 10.1)
 pip install https://download.pytorch.org/whl/cu101/torch-1.4.0-cp37-cp37m-win_amd64.whl
-# For CPU:
+
+# Option 2: CPU version
+# pip install https://download.pytorch.org/whl/cpu/torch-1.4.0%2Bcpu-cp37-cp37m-win_amd64.whl
+# Or if you have downloaded the wheel file:
 # pip install torch-1.4.0+cpu-cp37-cp37m-win_amd64.whl
 
-# Install torchvision
+# Install torchvision (required for both CPU and GPU versions)
 pip install torchvision==0.5.0
 
-# Install all other dependencies
-pip install -r requirements.txt
+# Install other dependencies (same for both CPU and GPU versions)
+pip install numpy==1.17.0 pandas==0.25.0 scikit-learn==0.21.0 tqdm==4.38.0 keras==2.2.5
+pip install gensim==3.8.3 nltk==3.4.5 fastai==1.0.60 spacy==2.3.7 emoji==0.5.4
+pip install fasttext-wheel==0.9.2 pytorch-pretrained-bert==0.6.2 tensorflow==1.14.0 protobuf==3.20.3
 
-# If protobuf causes issues, downgrade it:
-pip install protobuf==3.20.3
-```
-
-Note: The `requirements.txt` file includes all necessary packages except for PyTorch, which should be installed separately as shown above due to different CPU/GPU variants.
-
-#### GPU Environment Setup (Manual Installation)
-
-```bash
-# Create and activate environment
-conda create -n toxic_env python=3.7 -y
-conda activate toxic_env
-
-# Install PyTorch with CUDA 10.1
-pip install https://download.pytorch.org/whl/cu101/torch-1.4.0-cp37-cp37m-win_amd64.whl
-pip install torchvision==0.5.0
-
-# Install other dependencies
-pip install numpy==1.17.0 pandas==0.25.0 scikit-learn==0.21.0 tqdm==4.38.0 keras==2.2.5 gensim==3.8.3 nltk==3.4.5 fastai==1.0.60 spacy==2.3.7 emoji==0.5.4 fasttext-wheel==0.9.2 pytorch-pretrained-bert==0.6.2 tensorflow==1.14.0 protobuf==3.20.3
-```
-
-#### CPU-only Environment Setup
-
-```bash
-# Create and activate environment
-conda create -n toxic_env python=3.7 -y
-conda activate toxic_env
-
-# Install PyTorch CPU version
-pip install torch-1.4.0+cpu-cp37-cp37m-win_amd64.whl
-pip install torchvision==0.5.0
-
-# Install other dependencies
-pip install numpy==1.17.0 pandas==0.25.0 scikit-learn==0.21.0 tqdm==4.38.0 keras==2.2.5 gensim==3.8.3 nltk==3.4.5 fastai==1.0.60 spacy==2.3.7 emoji==0.5.4 fasttext-wheel==0.9.2 pytorch-pretrained-bert==0.6.2 tensorflow==1.14.0 protobuf==3.20.3
+# Download spaCy English model
+python -m spacy download en_core_web_sm
 ```
 
 ### Important Notes
